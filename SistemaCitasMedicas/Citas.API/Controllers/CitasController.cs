@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Citas.Application;
 using Citas.Domain;
+using Microsoft.Win32;
+
 
 namespace Citas.API.Controllers
 {
@@ -50,10 +52,27 @@ namespace Citas.API.Controllers
 
         // 4. POST: api/Citas/programar -> Requerimiento Frontend: Registrar y programar cita
         [HttpPost("programar")]
-        public async Task<IActionResult> ProgramarCita([FromBody] Cita cita)
+        public async Task<IActionResult> ProgramarCita([FromBody] ProgramarCitaComando comando)
         {
-            await _programarCitaUseCase.EjecutarAsync(cita);
-            return Ok(new { mensaje = "Cita programada con éxito" });
+            try
+            {
+                var cita = new Cita
+                {
+                    // OMITIMOS el Id. Dejamos que la Base de Datos lo genere automáticamente.
+                    FechaHora = DateTime.SpecifyKind(comando.fechaHora, DateTimeKind.Utc),
+                    PacienteId = comando.pacienteId,
+                    MedicoId = comando.medicoId
+                };
+
+                await _programarCitaUseCase.EjecutarAsync(cita);
+                return Ok(new { mensaje = "Cita programada con éxito" });
+            }
+            catch (System.Exception ex)
+            {
+                // Extraemos el error interno real que manda la Base de Datos
+                var errorReal = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return BadRequest(new { error = $"Error BD: {errorReal}" });
+            }
         }
 
         // 5. POST: api/Citas/diagnostico -> Requerimiento Frontend: Registrar diagnóstico del médico
