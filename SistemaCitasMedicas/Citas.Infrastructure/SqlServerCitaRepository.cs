@@ -27,7 +27,7 @@ namespace Citas.Infrastructure
 
         public async Task<IEnumerable<Cita>> ObtenerCitasProgramadasAsync()
         {
-            // Traemos la cita incluyendo los datos del Paciente, Médico y Diagnóstico si tiene
+            //traemos la cita incluyendo los datos del Paciente, Médico y Diagnóstico si tiene
             return await _context.Citas
                 .Include(c => c.Paciente)
                 .Include(c => c.Medico)
@@ -37,7 +37,7 @@ namespace Citas.Infrastructure
 
         public async Task<Cita?> ObtenerCitaPorIdAsync(int citaId)
         {
-            // Optimizado con Include para que el caso de uso cargue correctamente toda la información de la cita
+            //optimizado con Include para que el caso de uso cargue correctamente toda la información de la cita
             return await _context.Citas
                 .Include(c => c.Paciente)
                 .Include(c => c.Medico)

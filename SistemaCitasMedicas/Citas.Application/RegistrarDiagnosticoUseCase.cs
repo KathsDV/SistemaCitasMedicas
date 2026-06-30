@@ -15,7 +15,7 @@ namespace Citas.Application
 
         public async Task EjecutarAsync(Diagnostico diagnostico)
         {
-            // validamos que la cita realmente exista antes de diagnosticar
+            //validamos que la cita realmente exista antes de diagnosticar
             var cita = await _repository.ObtenerCitaPorIdAsync(diagnostico.CitaId);
             if (cita == null)
             {

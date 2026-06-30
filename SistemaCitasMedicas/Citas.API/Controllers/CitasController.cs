@@ -26,7 +26,7 @@ namespace Citas.API.Controllers
             _repository = repository;
         }
 
-        // 1. GET: api/Citas/medicos -> Requerimiento Frontend: Listar médicos
+        //api/Citas/medicos -> Requerimiento Frontend: Listar médicos
         [HttpGet("medicos")]
         public async Task<IActionResult> GetMedicos()
         {
@@ -34,7 +34,7 @@ namespace Citas.API.Controllers
             return Ok(medicos);
         }
 
-        // 2. GET: api/Citas/pacientes -> Requerimiento Frontend: Listar pacientes
+        //api/Citas/pacientes -> Requerimiento Frontend: Listar pacientes
         [HttpGet("pacientes")]
         public async Task<IActionResult> GetPacientes()
         {
@@ -42,7 +42,7 @@ namespace Citas.API.Controllers
             return Ok(pacientes);
         }
 
-        // 3. GET: api/Citas -> Requerimiento Frontend: Mostrar citas programadas
+        //api/Citas -> Requerimiento Frontend: Mostrar citas programadas
         [HttpGet]
         public async Task<IActionResult> GetCitas()
         {
@@ -50,7 +50,7 @@ namespace Citas.API.Controllers
             return Ok(citas);
         }
 
-        // 4. POST: api/Citas/programar -> Requerimiento Frontend: Registrar y programar cita
+        //api/Citas/programar -> Requerimiento Frontend: Registrar y programar cita
         [HttpPost("programar")]
         public async Task<IActionResult> ProgramarCita([FromBody] ProgramarCitaComando comando)
         {
@@ -58,7 +58,6 @@ namespace Citas.API.Controllers
             {
                 var cita = new Cita
                 {
-                    // OMITIMOS el Id. Dejamos que la Base de Datos lo genere automáticamente.
                     FechaHora = DateTime.SpecifyKind(comando.fechaHora, DateTimeKind.Utc),
                     PacienteId = comando.pacienteId,
                     MedicoId = comando.medicoId
@@ -75,7 +74,7 @@ namespace Citas.API.Controllers
             }
         }
 
-        // 5. POST: api/Citas/diagnostico -> Requerimiento Frontend: Registrar diagnóstico del médico
+        //api/Citas/diagnostico -> Requerimiento Frontend: Registrar diagnóstico del médico
         [HttpPost("diagnostico")]
         public async Task<IActionResult> RegistrarDiagnostico([FromBody] Diagnostico diagnostico)
         {

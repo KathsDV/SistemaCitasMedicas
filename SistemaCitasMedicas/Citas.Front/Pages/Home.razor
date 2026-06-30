@@ -213,7 +213,6 @@
 
     private async Task GuardarCita()
     {
-        // 1. Avisar si faltan datos en lugar de cancelarlo en silencio
         if (nuevaCita.pacienteId == 0 || nuevaCita.medicoId == 0)
         {
             Console.WriteLine("⚠️ Validación fallida: No has seleccionado un Paciente o un Médico.");
@@ -231,12 +230,9 @@
                 Console.WriteLine("✅ ¡Éxito! La API guardó la cita.");
                 nuevaCita = new ProgramarCitaComando { fechaHora = DateTime.Now };
                 await CargarDatos();
-                // Al usar OnValidSubmit, Blazor actualiza el estado automáticamente,
-                // pero puedes dejar StateHasChanged() si lo prefieres.
             }
             else
             {
-                // 2. Extraer el mensaje exacto de rechazo del backend
                 var errorDetalle = await respuesta.Content.ReadAsStringAsync();
                 Console.WriteLine($"❌ La API rechazó el registro. Código: {respuesta.StatusCode}");
                 Console.WriteLine($"Detalle del error backend: {errorDetalle}");

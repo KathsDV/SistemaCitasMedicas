@@ -2,14 +2,12 @@
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+#pragma warning disable CA1814 
 
 namespace Citas.Infrastructure.Migrations
 {
-    /// <inheritdoc />
     public partial class LimpiezaYAmpliacionSemilla : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.InsertData(
@@ -33,7 +31,6 @@ namespace Citas.Infrastructure.Migrations
                 });
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DeleteData(

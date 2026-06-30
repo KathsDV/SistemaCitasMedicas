@@ -10,7 +10,7 @@ namespace Citas.Domain
     {
         public int Id { get; set; }
         public int CitaId { get; set; }
-        public string Descripcion { get; set; } = string.Empty; // el diagnóstico médico
-        public string Tratamiento { get; set; } = string.Empty;  // el tratamiento asignado
+        public string Descripcion { get; set; } = string.Empty;
+        public string Tratamiento { get; set; } = string.Empty;
     }
 }

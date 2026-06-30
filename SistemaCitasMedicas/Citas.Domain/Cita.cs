@@ -17,7 +17,7 @@ namespace Citas.Domain
 
         public DateTime FechaHora { get; set; }
 
-        // relación opcional: Una cita puede o no tener un diagnóstico aún
+        //una cita puede o no tener un diagnóstico aún
         public Diagnostico? Diagnostico { get; set; }
     }
 }
