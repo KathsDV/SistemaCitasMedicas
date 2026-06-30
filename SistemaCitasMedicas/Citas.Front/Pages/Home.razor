@@ -1,0 +1,275 @@
+﻿@page "/"
+@using Citas.Front.Models
+@inject HttpClient Http
+
+<div class="container-fluid px-4 py-3 bg-light min-vh-100">
+    <div class="d-flex justify-content-between align-items-center p-4 mb-4 bg-white rounded-4 shadow-sm border-start border-primary border-5">
+        <div>
+            <span class="text-uppercase text-muted fw-bold small tracking-wider">Centro Médico</span>
+            <h1 class="h2 fw-extrabold text-dark m-0">Control de Citas Ambulatorias</h1>
+        </div>
+        <div class="bg-primary-subtle p-3 rounded-3 text-primary text-center shadow-sm">
+            <span class="fw-bold d-block">📆 Gestión Activa</span>
+            <small class="text-muted">Arquitectura Hexagonal</small>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-4 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-success-subtle text-success p-2 rounded-3 me-3">
+                            <span class="fs-4">📝</span>
+                        </div>
+                        <h3 class="h5 fw-bold m-0 text-dark">Programar Turno</h3>
+                    </div>
+
+                    <EditForm Model="@nuevaCita">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary fw-semibold small">Fecha y Hora de la Cita</label>
+                            <InputDate Type="InputDateType.DateTimeLocal" class="form-control form-control-lg border-2 rounded-3 bg-light" @bind-Value="nuevaCita.fechaHora" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-secondary fw-semibold small">Paciente Asignado</label>
+                            <InputSelect class="form-select form-select-lg border-2 rounded-3 bg-light" @bind-Value="nuevaCita.pacienteId">
+                                <option value="0">-- Seleccione el Paciente --</option>
+                                @foreach (var p in pacientes)
+                                {
+                                    <option value="@p.id">👤 @p.nombre @p.apellido</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-secondary fw-semibold small">Médico Tratante</label>
+                            <InputSelect class="form-select form-select-lg border-2 rounded-3 bg-light" @bind-Value="nuevaCita.medicoId">
+                                <option value="0">-- Seleccione el Especialista --</option>
+                                @foreach (var m in medicos)
+                                {
+                                    <option value="@m.id">👨‍⚕️ Dr. @m.nombre @m.apellido (@m.especialidad)</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <button type="button" @onclick="GuardarCita" class="btn btn-success btn-lg w-100 fw-bold rounded-3 py-3 shadow-sm">
+                            💾 Confirmar y Registrar Cita
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+
+            @if (citaSeleccionada != null)
+            {
+                <div class="card border-0 shadow-sm rounded-4 border-top border-info border-5">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-info-subtle text-info p-2 rounded-3 me-3">
+                                <span class="fs-4">🩺</span>
+                            </div>
+                            <h3 class="h5 fw-bold m-0 text-dark">Registrar Diagnóstico</h3>
+                        </div>
+                        <p class="small text-muted mb-3">Paciente: <strong>@citaSeleccionada.paciente?.nombre @citaSeleccionada.paciente?.apellido</strong></p>
+
+                        <EditForm Model="@nuevoDiagnostico" OnValidSubmit="GuardarDiagnostico">
+                            <div class="mb-3">
+                                <label class="form-label text-secondary fw-semibold small">Descripción Clínica</label>
+                                <InputTextArea class="form-control border-2 rounded-3 bg-light" rows="3" placeholder="Ej: Faringitis aguda, reposo de 3 días..." @bind-Value="nuevoDiagnostico.descripcion" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-secondary fw-semibold small">Receta Médica / Tratamiento</label>
+                                <InputTextArea class="form-control border-2 rounded-3 bg-light" rows="2" placeholder="Ej: Amoxicilina 500mg cada 8 horas..." @bind-Value="nuevoDiagnostico.tratamiento" />
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-info text-white fw-bold w-100 rounded-3">Guardar Tratamiento</button>
+                                <button type="button" class="btn btn-light border rounded-3" @onclick="() => citaSeleccionada = null">Cancelar</button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-xl-8 col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-dark-subtle text-dark p-2 rounded-3 me-3">
+                                <span class="fs-4">📋</span>
+                            </div>
+                            <h3 class="h5 fw-bold m-0 text-dark">Agenda de Pacientes</h3>
+                        </div>
+                        <button class="btn btn-light btn-sm rounded-3 border fw-semibold text-secondary" @onclick="CargarDatos">🔄 Sincronizar</button>
+                    </div>
+
+                    @if (citas == null)
+                    {
+                        <div class="d-flex flex-column align-items-center justify-content-center py-5">
+                            <div class="spinner-border text-primary mb-3" role="status"></div>
+                            <span class="text-muted fw-medium">Estableciendo conexión con el servidor de Docker...</span>
+                        </div>
+                    }
+                    else if (!citas.Any())
+                    {
+                        <div class="text-center py-5 bg-light rounded-4 border border-dashed border-2 m-0">
+                            <span class="fs-1 d-block mb-2">📭</span>
+                            <h5 class="text-secondary fw-bold">No hay citas en agenda</h5>
+                            <p class="text-muted small">Usa el formulario de la izquierda para registrar el primer turno en Postgres.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive rounded-3 border border-light">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th class="ps-3">Horario</th>
+                                        <th>Paciente</th>
+                                        <th>Médico Especialista</th>
+                                        <th>Diagnóstico Histórico</th>
+                                        <th class="text-end pe-3">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var c in citas)
+                                    {
+                                        <tr>
+                                            <td class="ps-3 fw-bold text-primary">
+                                                📅 @c.fechaHora.ToString("dd/MM/yyyy") <br />
+                                                <small class="text-muted fw-normal">⏰ @c.fechaHora.ToString("hh:mm tt")</small>
+                                            </td>
+                                            <td class="fw-semibold text-dark">@c.paciente?.nombre @c.paciente?.apellido</td>
+                                            <td>
+                                                <span class="d-block fw-bold text-dark">Dr. @c.medico?.nombre @c.medico?.apellido</span>
+                                                <span class="badge bg-secondary-subtle text-secondary rounded-2">@c.medico?.especialidad</span>
+                                            </td>
+                                            <td>
+                                                @if (c.diagnostico != null)
+                                                {
+                                                    <span class="d-block text-truncate small fw-medium text-success" style="max-width: 180px;">🩺 @c.diagnostico.descripcion</span>
+                                                    <small class="text-muted d-block text-truncate" style="max-width: 180px;">💊 Receta: @c.diagnostico.tratamiento</small>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small italic">Pendiente de evaluación</span>
+                                                }
+                                            </td>
+                                            <td class="text-end pe-3">
+                                                @if (c.diagnostico == null)
+                                                {
+                                                    <button type="button" class="btn btn-outline-info btn-sm fw-bold rounded-2 px-3" @onclick="() => SeleccionarCitaParaDiagnostico(c)">
+                                                        🩺 Diagnosticar
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 fw-semibold">Evaluado</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<MedicoDto> medicos = new();
+    private List<PacienteDto> pacientes = new();
+    private List<CitaDto>? citas;
+
+    private ProgramarCitaComando nuevaCita = new() { fechaHora = DateTime.Now };
+    private DiagnosticoDto nuevoDiagnostico = new();
+    private CitaDto? citaSeleccionada;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        try
+        {
+            medicos = await Http.GetFromJsonAsync<List<MedicoDto>>("api/Citas/medicos") ?? new();
+            pacientes = await Http.GetFromJsonAsync<List<PacienteDto>>("api/Citas/pacientes") ?? new();
+            citas = await Http.GetFromJsonAsync<List<CitaDto>>("api/Citas");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al conectar: {ex.Message}");
+            citas = new List<CitaDto>();
+        }
+    }
+
+    private async Task GuardarCita()
+    {
+        if (nuevaCita.pacienteId == 0 || nuevaCita.medicoId == 0)
+        {
+            Console.WriteLine("⚠️ Validación fallida: No has seleccionado un Paciente o un Médico.");
+            return;
+        }
+
+        try
+        {
+            Console.WriteLine("Enviando la petición a la API...");
+
+            var respuesta = await Http.PostAsJsonAsync("api/Citas/programar", nuevaCita);
+
+            if (respuesta.IsSuccessStatusCode)
+            {
+                Console.WriteLine("✅ ¡Éxito! La API guardó la cita.");
+                nuevaCita = new ProgramarCitaComando { fechaHora = DateTime.Now };
+                await CargarDatos();
+            }
+            else
+            {
+                var errorDetalle = await respuesta.Content.ReadAsStringAsync();
+                Console.WriteLine($"❌ La API rechazó el registro. Código: {respuesta.StatusCode}");
+                Console.WriteLine($"Detalle del error backend: {errorDetalle}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"🔥 Error crítico de conexión: {ex.Message}");
+        }
+    }
+
+    private void SeleccionarCitaParaDiagnostico(CitaDto cita)
+    {
+        citaSeleccionada = cita;
+        nuevoDiagnostico = new DiagnosticoDto { citaId = cita.id };
+    }
+
+    private async Task GuardarDiagnostico()
+    {
+        if (string.IsNullOrEmpty(nuevoDiagnostico.descripcion)) return;
+
+        try
+        {
+            var respuesta = await Http.PostAsJsonAsync("api/Citas/diagnostico", nuevoDiagnostico);
+            if (respuesta.IsSuccessStatusCode)
+            {
+                citaSeleccionada = null;
+                await CargarDatos();
+            }
+            else
+            {
+                Console.WriteLine($"Error al guardar diagnóstico: {respuesta.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+    }
+}
